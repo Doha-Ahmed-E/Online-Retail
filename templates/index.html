@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Segmentation - ML Model</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1> Customer Segmentation System</h1>
+            <p>AI-Powered Customer Segmentation using RFM Analysis</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('predict')">Single Prediction</button>
+            <button class="tab-button" onclick="showTab('batch')">Batch Prediction</button>
+            <button class="tab-button" onclick="showTab('segments')">View Segments</button>
+            <button class="tab-button" onclick="showTab('about')">About</button>
+        </div>
+
+        <!-- Single Prediction Tab -->
+        <div id="predict-tab" class="tab-content active">
+            <div class="card">
+                <h2>Predict Customer Segment</h2>
+                <p class="description">Enter customer RFM values to predict their segment</p>
+                
+                <form id="predict-form">
+                    <div class="form-group">
+                        <label for="recency">
+                            Recency (days since last purchase)
+                            <span class="tooltip" title="Number of days since the customer's last purchase"></span>
+                        </label>
+                        <input type="number" id="recency" name="recency" min="0" step="1" required 
+                               placeholder="e.g., 30">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="frequency">
+                            Frequency (number of purchases)
+                            <span class="tooltip" title="Total number of purchases made by the customer"></span>
+                        </label>
+                        <input type="number" id="frequency" name="frequency" min="0" step="1" required 
+                               placeholder="e.g., 5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monetary">
+                            Monetary (total spending)
+                            <span class="tooltip" title="Total amount spent by the customer"></span>
+                        </label>
+                        <input type="number" id="monetary" name="monetary" min="0" step="0.01" required 
+                               placeholder="e.g., 1500.00">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Predict Segment</button>
+                </form>
+
+                <!-- Result Display -->
+                <div id="result" class="result hidden">
+                    <h3>Prediction Result</h3>
+                    <div class="result-content">
+                        <div class="result-segment">
+                            <h4 id="segment-name"></h4>
+                            <p class="confidence">Confidence: <span id="confidence"></span>%</p>
+                        </div>
+                        
+                        <div class="result-details">
+                            <h4>Cluster Characteristics</h4>
+                            <div class="characteristics-grid">
+                                <div class="char-item">
+                                    <span class="char-label">Avg. Recency:</span>
+                                    <span class="char-value" id="avg-recency"></span> days
+                                </div>
+                                <div class="char-item">
+                                    <span class="char-label">Avg. Frequency:</span>
+                                    <span class="char-value" id="avg-frequency"></span> purchases
+                                </div>
+                                <div class="char-item">
+                                    <span class="char-label">Avg. Monetary:</span>
+                                    $<span class="char-value" id="avg-monetary"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="recommendations">
+                            <h4> Recommendations</h4>
+                            <ul id="recommendations-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Display -->
+                <div id="error" class="error hidden"></div>
+            </div>
+        </div>
+
+        <!-- Batch Prediction Tab -->
+        <div id="batch-tab" class="tab-content">
+            <div class="card">
+                <h2>Batch Prediction</h2>
+                <p class="description">Upload or enter multiple customers for batch prediction</p>
+                
+                <div class="batch-input">
+                    <h3>Enter Customer Data (JSON format)</h3>
+                    <textarea id="batch-input" rows="10" placeholder='{
+  "customers": [
+    {"recency": 10, "frequency": 5, "monetary": 1000},
+    {"recency": 100, "frequency": 2, "monetary": 200}
+  ]
+}'></textarea>
+                    <button onclick="predictBatch()" class="btn btn-primary">Predict Batch</button>
+                </div>
+
+                <!-- Batch Results -->
+                <div id="batch-results" class="batch-results hidden">
+                    <h3>Batch Prediction Results</h3>
+                    <div id="batch-results-content"></div>
+                </div>
+
+                <!-- Batch Error Display -->
+                <div id="batch-error" class="error hidden"></div>
+            </div>
+        </div>
+
+        <!-- View Segments Tab -->
+        <div id="segments-tab" class="tab-content">
+            <div class="card">
+                <h2>Customer Segments Overview</h2>
+                <p class="description">View all customer segments and their characteristics</p>
+                
+                <button onclick="loadSegments()" class="btn btn-secondary">Load Segments</button>
+                
+                <div id="segments-list" class="segments-list"></div>
+            </div>
+        </div>
+
+        <!-- About Tab -->
+        <div id="about-tab" class="tab-content">
+            <div class="card">
+                <h2>About This System</h2>
+                
+                <div class="about-section">
+                    <h3> What is Customer Segmentation?</h3>
+                    <p>Customer segmentation is the process of dividing customers into groups based on common characteristics. This system uses <strong>RFM Analysis</strong> (Recency, Frequency, Monetary) to segment customers.</p>
+                </div>
+
+                <div class="about-section">
+                    <h3> Machine Learning Model</h3>
+                    <p>This application uses <strong>K-Means Clustering</strong> algorithm to automatically segment customers based on their purchase behavior:</p>
+                    <ul>
+                        <li><strong>Recency:</strong> How recently did the customer make a purchase?</li>
+                        <li><strong>Frequency:</strong> How often do they purchase?</li>
+                        <li><strong>Monetary:</strong> How much do they spend?</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h3> Customer Segments</h3>
+                    <ul>
+                        <li><strong>Champions:</strong> Recent buyers, purchase frequently, and spend the most</li>
+                        <li><strong>Loyal Customers:</strong> Regular buyers with good purchase frequency</li>
+                        <li><strong>Big Spenders:</strong> Customers who spend large amounts</li>
+                        <li><strong>At Risk:</strong> Haven't purchased in a while, need re-engagement</li>
+                        <li><strong>New Customers:</strong> Recent first-time purchasers</li>
+                        <li><strong>Regular Customers:</strong> Steady, average customers</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h3> Technology Stack</h3>
+                    <ul>
+                        <li><strong>Backend:</strong> Flask (Python Web Framework)</li>
+                        <li><strong>ML Model:</strong> scikit-learn K-Means Clustering</li>
+                        <li><strong>Data Processing:</strong> Pandas, NumPy</li>
+                        <li><strong>Frontend:</strong> HTML, CSS, JavaScript</li>
+                        <li><strong>Dataset:</strong> UCI Online Retail Dataset</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h3> Dataset Information</h3>
+                    <p>This model is trained on the <strong>Online Retail Dataset</strong> from UCI Machine Learning Repository, containing transactions from a UK-based online retail company.</p>
+                    <ul>
+                        <li>Total Customers Analyzed: <strong>4,338</strong></li>
+                        <li>Training Period: 2010-2011</li>
+                        <li>Features: Recency, Frequency, Monetary Value</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Customer Segmentation System | Powered by Machine Learning</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
