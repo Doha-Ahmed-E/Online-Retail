@@ -16,7 +16,7 @@ A complete machine learning project that performs customer segmentation using RF
 
 1. **Clone or navigate to the project directory**
    ```bash
-   cd /mnt/vol_d/CUFE/SIC-702/Tasks/Deployment
+   cd /Deployment
    ```
 
 2. **Create a virtual environment**
